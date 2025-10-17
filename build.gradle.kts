@@ -14,7 +14,7 @@ group = "com.example"
 version = "0.0.1"
 
 tasks.register<Jar>("fatJar") {
-    archiveBaseName.set("ktor-letter-pet-app")
+    archiveBaseName.set("ktor-letter-pet")
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes["Main-Class"] = "io.ktor.server.netty.EngineMain"
