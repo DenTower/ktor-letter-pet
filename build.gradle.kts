@@ -8,27 +8,28 @@ plugins {
     kotlin("jvm") version "2.2.20"
     id("io.ktor.plugin") version "3.3.0"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
+    id("com.gradleup.shadow") version "9.1.0"
 }
 
 group = "com.example"
 version = "0.0.1"
 
-tasks.register<Jar>("fatJar") {
-    archiveBaseName.set("ktor-letter-pet")
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+application {
+    mainClass = "io.ktor.server.netty.EngineMain"
+}
+
+tasks.jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE  // игнорируем дубликаты
+
     manifest {
         attributes["Main-Class"] = "io.ktor.server.netty.EngineMain"
     }
-    from(sourceSets.main.get().output)
-
-    dependsOn(configurations.runtimeClasspath)
-    from({
-        configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
-    })
-}
-
-application {
-    mainClass = "io.ktor.server.netty.EngineMain"
+    from(configurations.runtimeClasspath.get()
+        .onEach { println("add from dependencies: ${it.name}") }
+        .map { if (it.isDirectory) it else zipTree(it) })
+    val sourcesMain = sourceSets.main.get()
+    sourcesMain.allSource.forEach { println("add from sources: ${it.name}") }
+    from(sourcesMain.output)
 }
 
 dependencies {
