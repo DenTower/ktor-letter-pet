@@ -1,5 +1,7 @@
 package com.example.di
 
+import com.example.data.ChatDataSource
+import com.example.data.ChatDataSourceImpl
 import com.example.data.MessageDataSource
 import com.example.data.MessageDataSourceImpl
 import com.example.room.RoomController
@@ -18,7 +20,13 @@ val mainModule = module {
     single<MessageDataSource> {
         MessageDataSourceImpl(get())
     }
+    single<ChatDataSource> {
+        ChatDataSourceImpl(get())
+    }
     single {
-        RoomController(get())
+        RoomController(
+            messageDataSource = get(),
+            chatDataSource = get()
+        )
     }
 }

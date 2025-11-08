@@ -24,7 +24,8 @@ tasks.jar {
     manifest {
         attributes["Main-Class"] = "io.ktor.server.netty.EngineMain"
     }
-    from(configurations.runtimeClasspath.get()
+    from(
+        configurations.runtimeClasspath.get()
         .onEach { println("add from dependencies: ${it.name}") }
         .map { if (it.isDirectory) it else zipTree(it) })
     val sourcesMain = sourceSets.main.get()
