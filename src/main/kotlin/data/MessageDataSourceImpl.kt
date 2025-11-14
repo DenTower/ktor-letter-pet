@@ -35,4 +35,8 @@ class MessageDataSourceImpl(
             update = setValue(Chat::lastMessageId, message.id)
         )
     }
+
+    override suspend fun deleteChatMessages(chatId: String) {
+        messages.deleteMany(Message::chatId eq chatId)
+    }
 }

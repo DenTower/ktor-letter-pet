@@ -41,7 +41,10 @@ class RoomController(
             timestamp = System.currentTimeMillis(),
         )
         messageDataSource.insertMessage(messageEntity)
-        members.values.forEach { member ->
+
+        val chatMembers = chatDataSource.getAllChatMembers(chatId).toSet()
+
+        members.values.filter { it.username in chatMembers }.forEach { member ->
             val parsedMessage = Json.encodeToString<ServerEvent>(
                 ServerEvent.NewMessage(messageEntity)
             )
@@ -70,7 +73,15 @@ class RoomController(
     }
 
     suspend fun deleteChat(chatId: String) {
+        val chatMembers = chatDataSource.getAllChatMembers(chatId).toSet()
+
         chatDataSource.deleteChat(chatId)
+        messageDataSource.deleteChatMessages(chatId)
+
+
+        members.values.filter { it.username in chatMembers }.forEach { member ->
+            notifyRemovedFromChat(username = member.username, chatId = chatId)
+        }
     }
 
     suspend fun getAllChatMembers(chatId: String): List<String> {
@@ -84,8 +95,14 @@ class RoomController(
         notifyAddedToChat(username = username, chat = chat)
     }
 
+    suspend fun removeMemberFromChat(username: String, chatId: String) {
+        chatDataSource.deleteMember(username, chatId)
+
+        notifyRemovedFromChat(username = username, chatId = chatId)
+    }
+
     private suspend fun notifyAddedToChat(username: String, chat: Chat) {
-        val parsedChat = Json.encodeToString(
+        val parsedChat = Json.encodeToString<ServerEvent>(
             ServerEvent.NewChat(chat)
         )
 
@@ -95,7 +112,14 @@ class RoomController(
         )
     }
 
-    suspend fun removeMemberFromChat(username: String, chatId: String) {
-        chatDataSource.deleteMember(username, chatId)
+    private suspend fun notifyRemovedFromChat(username: String, chatId: String) {
+        val parsedChat = Json.encodeToString<ServerEvent>(
+            ServerEvent.DeleteChat(chatId)
+        )
+
+        val member = members[username]
+        member?.socket?.send(
+            Frame.Text(parsedChat)
+        )
     }
 }
