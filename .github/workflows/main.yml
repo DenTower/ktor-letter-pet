@@ -20,7 +20,7 @@ jobs:
 
       # 3. Делаем fatJar
       - name: Build fat JAR
-        run: ./gradlew buildFatJar
+        run: ./gradlew shadowJar
 
       # 4. Логин в Docker Hub
       - name: Login to Docker Hub
