@@ -12,6 +12,7 @@ import com.example.routes.removeMemberFromChat
 import com.example.routes.getAllChatMembers
 import com.example.routes.getAllChatsForUser
 import com.example.routes.getAllMessagesForUser
+import com.example.routes.syncMessages
 
 
 fun Application.configureRouting() {
@@ -28,5 +29,7 @@ fun Application.configureRouting() {
         getAllChatMembers(roomController)
         addMemberToChat(roomController)
         removeMemberFromChat(roomController)
+
+        syncMessages(roomController)
     }
 }

@@ -1,6 +1,7 @@
 package com.example.routes
 
 import com.example.data.model.Chat
+import com.example.data.model.Message
 import com.example.routes.dto.IncomingMessage
 import com.example.room.exceptions.SessionAlreadyExistsException
 import com.example.room.RoomController
@@ -45,11 +46,7 @@ fun Route.chatSocket(roomController: RoomController) {
                     val messageJson = frame.readText()
                     val message = Json.decodeFromString<IncomingMessage>(messageJson)
 
-                    roomController.sendMessage(
-                        senderUsername = session.username,
-                        message = message.text,
-                        chatId = message.chatId,
-                    )
+                    roomController.sendMessage(message)
                 }
             }
 
@@ -140,5 +137,20 @@ fun Route.removeMemberFromChat(roomController: RoomController) {
 
         roomController.removeMemberFromChat(username, chatId)
         call.respond(HttpStatusCode.OK)
+    }
+}
+
+fun Route.syncMessages(roomController: RoomController) {
+    post("/sync/messages") {
+        try {
+            val messages = call.receive<List<IncomingMessage>>()
+
+            messages.forEach { message ->
+                roomController.sendMessage(message)
+            }
+            call.respond(HttpStatusCode.OK)
+        } catch (e: Exception) {
+            call.respond(HttpStatusCode.InternalServerError, e.message ?: "Unexpected error")
+        }
     }
 }

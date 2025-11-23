@@ -6,6 +6,7 @@ import com.example.data.model.Chat
 import com.example.data.model.Message
 import com.example.room.exceptions.ChatNotFoundException
 import com.example.room.exceptions.SessionAlreadyExistsException
+import com.example.routes.dto.IncomingMessage
 import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.close
@@ -33,16 +34,17 @@ class RoomController(
         )
     }
 
-    suspend fun sendMessage(senderUsername: String, message: String, chatId: String) {
+    suspend fun sendMessage(message: IncomingMessage) {
         val messageEntity = Message(
-            chatId = chatId,
-            text = message,
-            username = senderUsername,
-            timestamp = System.currentTimeMillis(),
+            id = message.id,
+            chatId = message.chatId,
+            text = message.text,
+            username = message.username,
+            timestamp = message.timestamp
         )
         messageDataSource.insertMessage(messageEntity)
 
-        val chatMembers = chatDataSource.getAllChatMembers(chatId).toSet()
+        val chatMembers = chatDataSource.getAllChatMembers(message.chatId).toSet()
 
         members.values.filter { it.username in chatMembers }.forEach { member ->
             val parsedMessage = Json.encodeToString<ServerEvent>(
